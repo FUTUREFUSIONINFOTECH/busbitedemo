@@ -9,6 +9,9 @@ import { defineConfig } from 'vite';
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => ({
+  // GitHub Pages root website
+  base: '/',
+
   plugins: [
     react(),
     tailwindcss(),
