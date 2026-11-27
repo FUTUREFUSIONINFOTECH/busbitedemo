@@ -35,8 +35,8 @@ import type {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const IMG_HERO = '/assets/images/highway_plaza_hero_1795667339325.jpg';
-const IMG_DOSA = '/assets/images/masala_dosa_platter_1795667339414.jpg';
+const IMG_HERO = '/src/assets/images/highway_plaza_hero_1795667339325.jpg';
+const IMG_DOSA = '/src/assets/images/masala_dosa_platter_1795667339414.jpg';
 
 const IMG_BIRYANI = '/src/assets/images/hyderabadi_biryani_pot_1795667339711.jpg';
 const IMG_COFFEE = '/src/assets/images/filter_coffee_snacks_1795667340074.jpg';
