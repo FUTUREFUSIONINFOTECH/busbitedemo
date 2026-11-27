@@ -35,11 +35,11 @@ import type {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const IMG_HERO = '/src/assets/images/highway_plaza_hero_1795667339325.jpg';
-const IMG_DOSA = '/src/assets/images/masala_dosa_platter_1795667339414.jpg';
-const IMG_BIRYANI = '/src/assets/images/hyderabadi_biryani_pot_1795667339711.jpg';
-const IMG_COFFEE = '/src/assets/images/filter_coffee_snacks_1795667340074.jpg';
-const IMG_THALI = '/src/assets/images/thali_meal_tray_1795667340245.jpg';
+const IMG_HERO = '/assets/images/highway_plaza_hero_1795667339325.jpg';
+const IMG_DOSA = '/assets/images/masala_dosa_platter_1795667339414.jpg';
+const IMG_BIRYANI = '/assets/images/hyderabadi_biryani_pot_1795667339711.jpg';
+const IMG_COFFEE = '/assets/images/filter_coffee_snacks_1795667340074.jpg';
+const IMG_THALI = '/assets/images/thali_meal_tray_1795667340245.jpg';
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -3321,15 +3321,15 @@ async function startServer() {
     const distPath = path.resolve(__dirname, 'dist');
     if (fs.existsSync(distPath)) {
       app.use(express.static(distPath));
-      app.get('*', (_req, res) => {
+      app.get(/.*/, (_req, res) => {
         res.sendFile(path.join(distPath, 'index.html'));
       });
     }
   }
 
   const PORT = Number(process.env.PORT || 3000);
-  server.listen(PORT, 'localhost', () => {
-    console.log(`BusBite server running on http://localhost:${PORT}`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`BusBite server running on port ${PORT}`);
   });
 }
 
