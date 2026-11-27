@@ -11,7 +11,9 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig(() => ({
   // GitHub Pages project repository URL:
   // https://futurefusioninfotech.github.io/busbitedemo/
-  base: '/busbitedemo/',
+ base: process.env.GITHUB_PAGES === 'true'
+  ? '/busbitedemo/'
+  : '/',
 
   plugins: [
     react(),
