@@ -9,8 +9,9 @@ import { defineConfig } from 'vite';
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => ({
-  // GitHub Pages root website
-  base: '/',
+  // GitHub Pages project repository URL:
+  // https://futurefusioninfotech.github.io/busbitedemo/
+  base: '/busbitedemo/',
 
   plugins: [
     react(),
@@ -58,5 +59,11 @@ export default defineConfig(() => ({
       process.env.DISABLE_HMR === 'true'
         ? null
         : {},
+  },
+
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    assetsDir: 'assets',
   },
 }));
