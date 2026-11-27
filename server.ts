@@ -41,6 +41,10 @@ const IMG_BIRYANI = '/assets/images/hyderabadi_biryani_pot_1795667339711.jpg';
 const IMG_COFFEE = '/assets/images/filter_coffee_snacks_1795667340074.jpg';
 const IMG_THALI = '/assets/images/thali_meal_tray_1795667340245.jpg';
 
+// Public production URL used when generating passenger QR links.
+const PUBLIC_APP_URL =
+  process.env.APP_URL || 'https://busbitedemo.onrender.com';
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -2118,8 +2122,7 @@ async function startServer() {
     const { token } = req.params;
     const baseUrl =
       (req.query.origin as string) ||
-      process.env.APP_URL ||
-      `${req.protocol}://${req.get('host')}`;
+      PUBLIC_APP_URL;
     const targetUrl = `${baseUrl.replace(/\/$/, '')}/?view=passenger&qr=${encodeURIComponent(token)}`;
     try {
       const svg = await QRCode.toString(targetUrl, {
@@ -2139,8 +2142,7 @@ async function startServer() {
     const { token } = req.params;
     const baseUrl =
       (req.query.origin as string) ||
-      process.env.APP_URL ||
-      `${req.protocol}://${req.get('host')}`;
+      PUBLIC_APP_URL;
     const targetUrl = `${baseUrl.replace(/\/$/, '')}/?view=passenger&qr=${encodeURIComponent(token)}`;
     try {
       const buffer = await QRCode.toBuffer(targetUrl, {
