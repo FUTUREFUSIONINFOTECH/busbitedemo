@@ -39,6 +39,8 @@ import { RouteMapVisualizer } from '../components/RouteMapVisualizer';
 import { LanguageSelector, useLanguage } from '../i18n/indianLanguages';
 import type { OrderStatus, PlatformState, Restaurant } from '../types/platform';
 import { getApiUrl } from '../config/api';
+
+
 import highwayHeroImage from '../assets/images/highway_plaza_hero_1795667339325.jpg';
 import masalaDosaImage from '../assets/images/masala_dosa_platter_1795667339414.jpg';
 
@@ -748,12 +750,11 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
           <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
             {/* Left Editorial Showcase Panel */}
             <div className="lg:col-span-5 relative overflow-hidden bg-emerald-950 text-white p-8 flex flex-col justify-between">
-              <img
-                src={KITCHEN_HERO_IMG}
-                alt="Highway Restaurant Plaza"
-                className="absolute inset-0 w-full h-full object-cover opacity-35"
-                referrerPolicy="no-referrer"
-              />
+             <img
+  src={KITCHEN_HERO_IMG}
+  alt="Highway restaurant"
+  className="w-full h-full object-cover"
+/>
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/95 via-emerald-950/80 to-emerald-900/60" />
               <div className="relative z-10 space-y-4">
                 <div className="inline-flex items-center gap-2 rounded-lg bg-emerald-800/70 border border-emerald-500/30 px-3 py-1.5 text-[11px] font-bold tracking-wide text-emerald-100">
@@ -946,11 +947,10 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
           <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
             <div className="lg:col-span-5 relative overflow-hidden bg-emerald-950 text-white p-8 flex flex-col justify-between">
               <img
-                src={KITCHEN_AVATAR_IMG}
-                alt={td(restaurant.name)}
-                className="absolute inset-0 w-full h-full object-cover opacity-30"
-                referrerPolicy="no-referrer"
-              />
+  src={KITCHEN_AVATAR_IMG}
+  alt="Food"
+  className="w-full h-full object-cover"
+/>
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/95 via-emerald-950/80 to-emerald-900/65" />
               <div className="relative z-10 space-y-3">
                 <div className="inline-flex items-center gap-2 rounded-lg bg-white/10 border border-white/15 px-3 py-1 text-[11px] font-bold">

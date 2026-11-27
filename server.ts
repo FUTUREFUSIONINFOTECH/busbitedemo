@@ -37,9 +37,10 @@ const __dirname = path.dirname(__filename);
 
 const IMG_HERO = '/assets/images/highway_plaza_hero_1795667339325.jpg';
 const IMG_DOSA = '/assets/images/masala_dosa_platter_1795667339414.jpg';
-const IMG_BIRYANI = '/assets/images/hyderabadi_biryani_pot_1795667339711.jpg';
-const IMG_COFFEE = '/assets/images/filter_coffee_snacks_1795667340074.jpg';
-const IMG_THALI = '/assets/images/thali_meal_tray_1795667340245.jpg';
+
+const IMG_BIRYANI = '/src/assets/images/hyderabadi_biryani_pot_1795667339711.jpg';
+const IMG_COFFEE = '/src/assets/images/filter_coffee_snacks_1795667340074.jpg';
+const IMG_THALI = '/src/assets/images/thali_meal_tray_1795667340245.jpg';
 
 // Public production URL used when generating passenger QR links.
 const PUBLIC_APP_URL =
