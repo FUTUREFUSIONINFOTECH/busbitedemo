@@ -37,7 +37,7 @@ export function DesktopBrowserFrame({
   title,
   subtitle,
   brandName = 'BusBite',
-  logoSrc = '/src/assets/images/busbite_logo_1795779812646.jpg',
+  logoSrc = `${import.meta.env.BASE_URL}assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png`,
   navItems = [],
   activeNavId = '',
   onSelectNav,

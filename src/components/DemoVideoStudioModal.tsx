@@ -83,7 +83,7 @@ export function DemoVideoStudioModal({
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.src = '/assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png';
+    img.src = `${import.meta.env.BASE_URL}assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png`;
     img.onload = () => {
       logoImgRef.current = img;
     };

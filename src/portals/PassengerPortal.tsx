@@ -33,7 +33,10 @@ import {
   X,
 } from 'lucide-react';
 
-const PASSENGER_AVATAR = '/src/assets/images/passenger_profile_avatar_1795775491862.jpg';
+import passengerAvatar from '../assets/images/passenger_profile_avatar_1795775491862.jpg';
+import highwayHeroImage from '../assets/images/highway_plaza_hero_1795667339325.jpg';
+
+const PASSENGER_AVATAR = passengerAvatar;
 import type { TourSignal } from '../components/AppGuideTour';
 import { MobilePhoneFrame } from '../components/MobilePhoneFrame';
 import { RouteMapVisualizer } from '../components/RouteMapVisualizer';
@@ -779,7 +782,7 @@ export function PassengerPortal({
       subtitle={`${vehicle.regNumber} · ${td(route.origin.split(' ')[0])} → ${td(route.destination.split(' ')[0])}`}
       brandIcon={
         <img
-          src="/assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png"
+          src={`${import.meta.env.BASE_URL}assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png`}
           alt="BusBite"
           className="w-full h-full object-contain"
         />
@@ -1330,7 +1333,7 @@ export function PassengerPortal({
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
             <div className="h-24 relative bg-slate-100">
               <img
-                src="/src/assets/images/highway_plaza_hero_1795667339325.jpg"
+                src={highwayHeroImage}
                 alt="Highway dining plaza"
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"

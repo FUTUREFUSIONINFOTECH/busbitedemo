@@ -24,6 +24,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import type { TourSignal } from '../components/AppGuideTour';
+import highwayHeroImage from '../assets/images/highway_plaza_hero_1795667339325.jpg';
 import { DesktopBrowserFrame } from '../components/DesktopBrowserFrame';
 import { RouteMapVisualizer } from '../components/RouteMapVisualizer';
 import { LanguageSelector, useLanguage } from '../i18n/indianLanguages';
@@ -570,7 +571,7 @@ export function BusTravelsPortal({
           {/* Left Editorial Showcase Panel */}
           <div className="lg:col-span-5 relative overflow-hidden bg-emerald-950 text-white p-8 flex flex-col justify-between">
             <img
-              src="/src/assets/images/highway_plaza_hero_1795667339325.jpg"
+              src={highwayHeroImage}
               alt={tr('BusBite Fleet Operations')}
               className="absolute inset-0 w-full h-full object-cover opacity-30"
               referrerPolicy="no-referrer"
@@ -798,7 +799,7 @@ export function BusTravelsPortal({
         <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
           <div className="lg:col-span-5 relative overflow-hidden bg-emerald-950 text-white p-8 flex flex-col justify-between">
             <img
-              src="/src/assets/images/highway_plaza_hero_1795667339325.jpg"
+              src={highwayHeroImage}
               alt={td(company.name)}
               className="absolute inset-0 w-full h-full object-cover opacity-25"
               referrerPolicy="no-referrer"

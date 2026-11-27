@@ -51,7 +51,7 @@ export function DemoShareModal({
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 sticky top-0 bg-white z-10 gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <img
-              src="/assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png"
+              src={`${import.meta.env.BASE_URL}assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png`}
               alt="BusBite Logo"
               className="w-12 h-12 rounded-2xl object-cover bg-white border border-emerald-200 shrink-0 shadow-xs"
             />

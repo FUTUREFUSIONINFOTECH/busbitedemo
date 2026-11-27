@@ -38,6 +38,9 @@ import { MobilePhoneFrame } from '../components/MobilePhoneFrame';
 import { RouteMapVisualizer } from '../components/RouteMapVisualizer';
 import { LanguageSelector, useLanguage } from '../i18n/indianLanguages';
 import type { OrderStatus, PlatformState, Restaurant } from '../types/platform';
+import { getApiUrl } from '../config/api';
+import highwayHeroImage from '../assets/images/highway_plaza_hero_1795667339325.jpg';
+import masalaDosaImage from '../assets/images/masala_dosa_platter_1795667339414.jpg';
 
 interface RestaurantPortalProps {
   state: PlatformState;
@@ -46,8 +49,8 @@ interface RestaurantPortalProps {
   tourSignal?: TourSignal | null;
 }
 
-const KITCHEN_HERO_IMG = '/src/assets/images/highway_plaza_hero_1795667339325.jpg';
-const KITCHEN_AVATAR_IMG = '/src/assets/images/masala_dosa_platter_1795667339414.jpg';
+const KITCHEN_HERO_IMG = highwayHeroImage;
+const KITCHEN_AVATAR_IMG = masalaDosaImage;
 
 export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantPortalProps) {
   const { t, tr, td } = useLanguage();
@@ -103,7 +106,7 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
   // Inventory demo data: isolated per restaurant and persisted in this browser only.
   type InventoryItem = { id: string; name: string; category: string; unit: string; quantity: number; minStock: number; cost: number; supplier: string; updatedAt: string };
   type StockMovement = { id: string; itemName: string; type: 'IN' | 'OUT' | 'ADJUSTMENT'; quantity: number; note: string; date: string };
-  const inventoryStorageKey = `busbite-inventory-v1:${restaurant?.id || selectedRestId}`;
+  const inventoryStorageKey = `busbite-inventory-v1:${selectedRestId}`;
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
   const [inventoryLoaded, setInventoryLoaded] = useState(false);
@@ -432,7 +435,7 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
     setAuthBusy(true);
     setAuthError(null);
     try {
-      const res = await fetch('/api/auth/partner/login', {
+      const res = await fetch(getApiUrl('/api/auth/partner/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'RESTAURANT', username: u, password: p }),
@@ -471,7 +474,7 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
     setAuthBusy(true);
     setAuthError(null);
     try {
-      const res = await fetch('/api/auth/partner/register', {
+      const res = await fetch(getApiUrl('/api/auth/partner/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -527,7 +530,7 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
     }
     setPwBusy(true);
     try {
-      const res = await fetch('/api/auth/partner/change-password', {
+      const res = await fetch(getApiUrl('/api/auth/partner/change-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

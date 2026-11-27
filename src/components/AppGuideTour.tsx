@@ -228,7 +228,7 @@ export function AppGuideTour({
       <div className="bg-[#0B2B20] text-white px-3.5 py-2.5 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <img
-            src="/assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png"
+            src={`${import.meta.env.BASE_URL}assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png`}
             alt="BusBite"
             className="w-8 h-8 rounded-lg object-contain bg-white shrink-0"
           />

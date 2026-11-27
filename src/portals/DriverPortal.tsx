@@ -40,7 +40,9 @@ import { RouteMapVisualizer } from '../components/RouteMapVisualizer';
 import { LanguageSelector, useLanguage } from '../i18n/indianLanguages';
 import type { Order, OrderType, PlatformState, Restaurant, StaffMember } from '../types/platform';
 
-const DRIVER_AVATAR = '/src/assets/images/driver_profile_avatar_1795775492635.jpg';
+import driverAvatar from '../assets/images/driver_profile_avatar_1795775492635.jpg';
+
+const DRIVER_AVATAR = driverAvatar;
 
 interface DriverPortalProps {
   state: PlatformState;
@@ -384,7 +386,7 @@ export function DriverPortal({ state, post, patch, tourSignal }: DriverPortalPro
         subtitle={t('driver.title')}
         brandIcon={
           <img
-            src="/assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png"
+            src={`${import.meta.env.BASE_URL}assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png`}
             alt="BusBite"
             className="w-full h-full object-contain"
           />
@@ -783,7 +785,7 @@ export function DriverPortal({ state, post, patch, tourSignal }: DriverPortalPro
       subtitle={`${tr(crewMode === 'DRIVER' ? 'Driver' : 'Conductor')} · ${vehicle.regNumber}`}
       brandIcon={
         <img
-          src="/assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png"
+          src={`${import.meta.env.BASE_URL}assets/aistudio/BusBite_Mobile_App_Logo_012a5e2c.png`}
           alt="BusBite"
           className="w-full h-full object-contain"
         />
