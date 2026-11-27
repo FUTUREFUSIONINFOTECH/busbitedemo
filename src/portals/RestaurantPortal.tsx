@@ -8,6 +8,12 @@ import {
   Clock,
   Home,
   IndianRupee,
+  Boxes,
+  AlertTriangle,
+  PackagePlus,
+  Truck,
+  History,
+  Trash2,
   KeyRound,
   Lock,
   LogIn,
@@ -87,12 +93,85 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
   }, [tourSignal?.nonce]);
 
   const [selectedRestId, setSelectedRestId] = useState<string>(approvedRestaurants[0]?.id || 'rest-a2b');
-  const [activeTab, setActiveTab] = useState<'home' | 'orders' | 'buses' | 'menu' | 'payouts' | 'profile'>('home');
-  const [desktopSection, setDesktopSection] = useState<'dispatch' | 'buses' | 'menu' | 'payouts' | 'profile'>('dispatch');
+  const [activeTab, setActiveTab] = useState<'home' | 'orders' | 'buses' | 'inventory' | 'menu' | 'payouts' | 'profile'>('home');
+  const [desktopSection, setDesktopSection] = useState<'dispatch' | 'buses' | 'inventory' | 'menu' | 'payouts' | 'profile'>('dispatch');
   const [orderStageFilter, setOrderStageFilter] = useState<'NEW' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED'>('NEW');
   const [pickupVerifyCode, setPickupVerifyCode] = useState<string>('');
   const [verifyFeedback, setVerifyFeedback] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
+
+  // Inventory demo data: isolated per restaurant and persisted in this browser only.
+  type InventoryItem = { id: string; name: string; category: string; unit: string; quantity: number; minStock: number; cost: number; supplier: string; updatedAt: string };
+  type StockMovement = { id: string; itemName: string; type: 'IN' | 'OUT' | 'ADJUSTMENT'; quantity: number; note: string; date: string };
+  const inventoryStorageKey = `busbite-inventory-v1:${restaurant?.id || selectedRestId}`;
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
+  const [inventoryLoaded, setInventoryLoaded] = useState(false);
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [inventoryFilter, setInventoryFilter] = useState<'ALL' | 'LOW' | 'OUT'>('ALL');
+  const [inventoryModal, setInventoryModal] = useState<'item' | 'stock' | null>(null);
+  const [editingInventoryId, setEditingInventoryId] = useState<string | null>(null);
+  const [inventoryForm, setInventoryForm] = useState({ name: '', category: 'Ingredients', unit: 'kg', quantity: '0', minStock: '5', cost: '0', supplier: '' });
+  const [stockForm, setStockForm] = useState({ itemId: '', type: 'IN' as 'IN' | 'OUT' | 'ADJUSTMENT', quantity: '1', note: '' });
+
+  useEffect(() => {
+    setInventoryLoaded(false);
+    try {
+      const raw = window.localStorage.getItem(inventoryStorageKey);
+      const saved = raw ? JSON.parse(raw) as { items?: InventoryItem[]; movements?: StockMovement[] } : null;
+      if (saved) {
+        setInventoryItems(Array.isArray(saved.items) ? saved.items : []);
+        setStockMovements(Array.isArray(saved.movements) ? saved.movements : []);
+      } else {
+        setInventoryItems([
+          { id: 'rice', name: 'Raw Rice', category: 'Grains', unit: 'kg', quantity: 45, minStock: 15, cost: 62, supplier: 'Sri Murugan Traders', updatedAt: new Date().toISOString() },
+          { id: 'oil', name: 'Cooking Oil', category: 'Oil & Masala', unit: 'L', quantity: 8, minStock: 10, cost: 145, supplier: 'Lakshmi Agencies', updatedAt: new Date().toISOString() },
+          { id: 'tomato', name: 'Tomato', category: 'Vegetables', unit: 'kg', quantity: 0, minStock: 5, cost: 32, supplier: 'Fresh Market', updatedAt: new Date().toISOString() },
+          { id: 'coffee', name: 'Coffee Powder', category: 'Beverages', unit: 'kg', quantity: 6, minStock: 2, cost: 380, supplier: 'Coffee Depot', updatedAt: new Date().toISOString() },
+        ]);
+        setStockMovements([]);
+      }
+    } catch {
+      setInventoryItems([]);
+      setStockMovements([]);
+    }
+    setInventoryLoaded(true);
+  }, [inventoryStorageKey]);
+
+  useEffect(() => {
+    if (!inventoryLoaded) return;
+    window.localStorage.setItem(inventoryStorageKey, JSON.stringify({ items: inventoryItems, movements: stockMovements }));
+  }, [inventoryItems, stockMovements, inventoryLoaded, inventoryStorageKey]);
+
+  const saveInventoryItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = inventoryForm.name.trim();
+    if (!name) return;
+    const existing = inventoryItems.find((x) => x.id === editingInventoryId);
+    const item: InventoryItem = {
+      id: editingInventoryId || `inv-${Date.now()}`, name, category: inventoryForm.category,
+      unit: inventoryForm.unit, quantity: Math.max(0, Number(inventoryForm.quantity) || 0),
+      minStock: Math.max(0, Number(inventoryForm.minStock) || 0), cost: Math.max(0, Number(inventoryForm.cost) || 0),
+      supplier: inventoryForm.supplier.trim(), updatedAt: new Date().toISOString(),
+    };
+    setInventoryItems((prev) => existing ? prev.map((x) => x.id === item.id ? item : x) : [item, ...prev]);
+    setInventoryModal(null); setEditingInventoryId(null);
+    setInventoryForm({ name: '', category: 'Ingredients', unit: 'kg', quantity: '0', minStock: '5', cost: '0', supplier: '' });
+  };
+
+  const recordStockMovement = (e: React.FormEvent) => {
+    e.preventDefault();
+    const qty = Number(stockForm.quantity);
+    if (!stockForm.itemId || !Number.isFinite(qty) || qty <= 0) return;
+    const selected = inventoryItems.find((x) => x.id === stockForm.itemId);
+    if (!selected) return;
+    if (stockForm.type === 'OUT' && qty > selected.quantity) { window.alert('Stock out quantity cannot exceed available stock.'); return; }
+    setInventoryItems((prev) => prev.map((x) => x.id !== selected.id ? x : {
+      ...x, quantity: Math.max(0, x.quantity + (stockForm.type === 'IN' ? qty : -qty)), updatedAt: new Date().toISOString(),
+    }));
+    setStockMovements((prev) => [{ id: `mov-${Date.now()}`, itemName: selected.name, type: stockForm.type, quantity: qty, note: stockForm.note.trim(), date: new Date().toISOString() }, ...prev]);
+    setInventoryModal(null); setStockForm({ itemId: '', type: 'IN', quantity: '1', note: '' });
+  };
 
   // Profile & Timings Editor State
   const [profName, setProfName] = useState('');
@@ -1275,6 +1354,7 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
     const navItems = [
       { id: 'dispatch', label: tr('Kitchen Dispatch'), icon: ClipboardList, badge: activeOrderCount || undefined },
       { id: 'buses', label: tr('Incoming Buses & Map'), icon: Bus, badge: incomingBuses.length || undefined },
+      { id: 'inventory', label: tr('Inventory'), icon: Boxes },
       { id: 'menu', label: tr('Menu & Staff Offer'), icon: UtensilsCrossed },
       { id: 'payouts', label: tr('Commission & Dues'), icon: IndianRupee },
       { id: 'profile', label: tr('Profile & Timings'), icon: UserCheck },
@@ -1427,6 +1507,7 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
                 <h1 className="text-lg font-extrabold text-slate-900 mt-0.5">
                   {desktopSection === 'dispatch' && tr('Live Kitchen Order Dispatch')}
                   {desktopSection === 'buses' && tr('Approaching Buses & Corridor Radar')}
+                  {desktopSection === 'inventory' && tr('Inventory & Stock Management')}
                   {desktopSection === 'menu' && tr('Menu Catalog & Staff Offer')}
                   {desktopSection === 'payouts' && tr('Sales Revenue & Commission Ledger')}
                   {desktopSection === 'profile' && tr('Kitchen Profile, Timings & Account')}
@@ -1765,6 +1846,26 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
               </div>
             )}
 
+            {desktopSection === 'inventory' && (
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Total Items', value: inventoryItems.length, icon: Boxes, tone: 'text-slate-900' },
+                    { label: 'Low Stock', value: inventoryItems.filter((x) => x.quantity > 0 && x.quantity <= x.minStock).length, icon: AlertTriangle, tone: 'text-amber-700' },
+                    { label: 'Out of Stock', value: inventoryItems.filter((x) => x.quantity <= 0).length, icon: PackagePlus, tone: 'text-red-700' },
+                    { label: 'Stock Value', value: `₹${inventoryItems.reduce((sum, x) => sum + x.quantity * x.cost, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`, icon: IndianRupee, tone: 'text-emerald-800' },
+                  ].map((kpi) => { const Icon = kpi.icon; return <div key={kpi.label} className="bg-white border border-slate-200 rounded-xl p-4"><div className="flex items-center justify-between text-xs text-slate-500"><span>{kpi.label}</span><Icon className="w-4 h-4" /></div><div className={`text-2xl font-extrabold mt-2 ${kpi.tone}`}>{kpi.value}</div></div>; })}
+                </div>
+                <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-sm font-bold text-slate-900">Ingredient & Raw Material Stock</h2><p className="text-[11px] text-slate-500">Demo inventory saved in this browser for this restaurant</p></div><div className="flex gap-2"><button type="button" onClick={() => { setStockForm({ itemId: inventoryItems[0]?.id || '', type: 'IN', quantity: '1', note: '' }); setInventoryModal('stock'); }} className="px-3 py-2 rounded-lg border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-50">Stock In / Out</button><button type="button" onClick={() => { setEditingInventoryId(null); setInventoryForm({ name: '', category: 'Ingredients', unit: 'kg', quantity: '0', minStock: '5', cost: '0', supplier: '' }); setInventoryModal('item'); }} className="px-3 py-2 rounded-lg bg-emerald-800 text-white text-xs font-bold hover:bg-emerald-900"><Plus className="w-3.5 h-3.5 inline mr-1"/>Add Item</button></div></div>
+                  <div className="flex flex-col sm:flex-row gap-2"><div className="relative flex-1"><Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400"/><input value={inventorySearch} onChange={(e) => setInventorySearch(e.target.value)} placeholder="Search item or supplier..." className="w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs"/></div><select value={inventoryFilter} onChange={(e) => setInventoryFilter(e.target.value as typeof inventoryFilter)} className="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white"><option value="ALL">All stock</option><option value="LOW">Low stock</option><option value="OUT">Out of stock</option></select></div>
+                  <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr>{['Item','Category','Available','Min. Stock','Unit Cost','Supplier','Status','Actions'].map((h) => <th key={h} className="px-3 py-3 font-semibold">{h}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{inventoryItems.filter((x) => (x.name.toLowerCase().includes(inventorySearch.toLowerCase()) || x.supplier.toLowerCase().includes(inventorySearch.toLowerCase())) && (inventoryFilter === 'ALL' || (inventoryFilter === 'LOW' && x.quantity > 0 && x.quantity <= x.minStock) || (inventoryFilter === 'OUT' && x.quantity <= 0))).map((item) => { const status = item.quantity <= 0 ? 'Out of stock' : item.quantity <= item.minStock ? 'Low stock' : 'In stock'; return <tr key={item.id}><td className="px-3 py-3 font-bold text-slate-900">{item.name}</td><td className="px-3 py-3 text-slate-600">{item.category}</td><td className="px-3 py-3 font-mono font-bold">{item.quantity} {item.unit}</td><td className="px-3 py-3 font-mono">{item.minStock} {item.unit}</td><td className="px-3 py-3 font-mono">₹{item.cost.toFixed(2)}</td><td className="px-3 py-3 text-slate-600">{item.supplier || '—'}</td><td className="px-3 py-3"><span className={`px-2 py-1 rounded-md text-[10px] font-bold ${item.quantity <= 0 ? 'bg-red-50 text-red-700' : item.quantity <= item.minStock ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800'}`}>{status}</span></td><td className="px-3 py-3"><div className="flex gap-2"><button type="button" title="Edit" onClick={() => { setEditingInventoryId(item.id); setInventoryForm({ name: item.name, category: item.category, unit: item.unit, quantity: String(item.quantity), minStock: String(item.minStock), cost: String(item.cost), supplier: item.supplier }); setInventoryModal('item'); }} className="text-emerald-800 font-bold">Edit</button><button type="button" title="Delete" onClick={() => { if (window.confirm(`Delete ${item.name}?`)) setInventoryItems((prev) => prev.filter((x) => x.id !== item.id)); }} className="text-red-600"><Trash2 className="w-3.5 h-3.5"/></button></div></td></tr>; })}{inventoryItems.length === 0 && <tr><td colSpan={8} className="py-8 text-center text-slate-400">No inventory items. Add your first ingredient.</td></tr>}</tbody></table></div>
+                </div>
+                <div className="bg-white border border-slate-200 rounded-xl p-4"><div className="flex items-center gap-2 text-sm font-bold text-slate-900 mb-3"><History className="w-4 h-4 text-emerald-700"/>Stock Movement History</div>{stockMovements.length === 0 ? <p className="text-xs text-slate-400 py-3">No stock movements recorded yet.</p> : <div className="space-y-2 max-h-64 overflow-y-auto">{stockMovements.map((m) => <div key={m.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2 text-xs"><div><div className="font-semibold text-slate-900">{m.itemName} · {m.type}</div><div className="text-[11px] text-slate-500">{m.note || 'No note'} · {new Date(m.date).toLocaleString()}</div></div><div className={`font-mono font-bold ${m.type === 'IN' ? 'text-emerald-700' : 'text-red-700'}`}>{m.type === 'IN' ? '+' : '−'}{m.quantity}</div></div>)}</div>}</div>
+                {inventoryModal && <div className="fixed inset-0 z-[100] bg-slate-950/50 flex items-center justify-center p-4"><div className="w-full max-w-lg bg-white rounded-2xl p-5 shadow-2xl space-y-4"><div className="flex items-center justify-between"><h3 className="text-base font-extrabold text-slate-900">{inventoryModal === 'item' ? (editingInventoryId ? 'Edit Inventory Item' : 'Add Inventory Item') : 'Record Stock Movement'}</h3><button type="button" onClick={() => setInventoryModal(null)} className="p-1 rounded-lg hover:bg-slate-100"><X className="w-5 h-5"/></button></div>{inventoryModal === 'item' ? <form onSubmit={saveInventoryItem} className="grid grid-cols-1 sm:grid-cols-2 gap-3">{[{label:'Item name',key:'name',type:'text'},{label:'Category',key:'category',type:'text'},{label:'Unit (kg, L, pcs)',key:'unit',type:'text'},{label:'Current quantity',key:'quantity',type:'number'},{label:'Minimum stock',key:'minStock',type:'number'},{label:'Cost per unit (₹)',key:'cost',type:'number'},{label:'Supplier',key:'supplier',type:'text'}].map((f) => <label key={f.key} className="text-[11px] font-semibold text-slate-600">{f.label}<input required={f.key === 'name'} min={f.type === 'number' ? 0 : undefined} step={f.key === 'cost' ? '0.01' : 'any'} type={f.type} value={inventoryForm[f.key as keyof typeof inventoryForm]} onChange={(e) => setInventoryForm((v) => ({ ...v, [f.key]: e.target.value }))} className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"/></label>)}<div className="sm:col-span-2 flex justify-end gap-2"><button type="button" onClick={() => setInventoryModal(null)} className="px-4 py-2 border border-slate-200 rounded-lg text-xs">Cancel</button><button type="submit" className="px-4 py-2 bg-emerald-800 text-white rounded-lg text-xs font-bold">Save Item</button></div></form> : <form onSubmit={recordStockMovement} className="space-y-3"><label className="block text-[11px] font-semibold text-slate-600">Inventory item<select required value={stockForm.itemId} onChange={(e) => setStockForm((v) => ({ ...v, itemId: e.target.value }))} className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"><option value="">Select item</option>{inventoryItems.map((x) => <option key={x.id} value={x.id}>{x.name} ({x.quantity} {x.unit})</option>)}</select></label><label className="block text-[11px] font-semibold text-slate-600">Movement type<select value={stockForm.type} onChange={(e) => setStockForm((v) => ({ ...v, type: e.target.value as typeof v.type }))} className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"><option value="IN">Stock In / Purchase</option><option value="OUT">Stock Out / Usage</option><option value="ADJUSTMENT">Adjustment / Waste</option></select></label><label className="block text-[11px] font-semibold text-slate-600">Quantity<input required min="0.01" step="0.01" type="number" value={stockForm.quantity} onChange={(e) => setStockForm((v) => ({ ...v, quantity: e.target.value }))} className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"/></label><label className="block text-[11px] font-semibold text-slate-600">Note / Reason<input value={stockForm.note} onChange={(e) => setStockForm((v) => ({ ...v, note: e.target.value }))} placeholder="Purchase, kitchen usage, damaged, expired..." className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"/></label><div className="flex justify-end gap-2"><button type="button" onClick={() => setInventoryModal(null)} className="px-4 py-2 border border-slate-200 rounded-lg text-xs">Cancel</button><button type="submit" className="px-4 py-2 bg-emerald-800 text-white rounded-lg text-xs font-bold">Save Movement</button></div></form>}</div></div>}
+              </div>
+            )}
+
             {desktopSection === 'menu' && (
               <div className="space-y-5">
                 {/* Active Driver & Conductor Staff Offer Card */}
@@ -2018,6 +2119,11 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
           label: tr('Orders'),
           icon: <ClipboardList className="w-4 h-4" />,
           badgeCount: activeOrderCount || undefined,
+        },
+        {
+          id: 'inventory',
+          label: tr('Stock'),
+          icon: <Boxes className="w-4 h-4" />,
         },
         {
           id: 'buses',
@@ -2320,6 +2426,10 @@ export function RestaurantPortal({ state, post, patch, tourSignal }: RestaurantP
       )}
 
       {/* TAB 3: INCOMING BUSES & LIVE MAP */}
+      {activeTab === 'inventory' && (
+        <div className="space-y-3"><div className="grid grid-cols-2 gap-2"><div className="bg-white border rounded-xl p-3"><div className="text-[10px] text-slate-500">Total Items</div><div className="text-xl font-bold">{inventoryItems.length}</div></div><div className="bg-white border rounded-xl p-3"><div className="text-[10px] text-slate-500">Low / Out of Stock</div><div className="text-xl font-bold text-amber-700">{inventoryItems.filter((x) => x.quantity <= x.minStock).length}</div></div></div><button type="button" onClick={() => { setStockForm({ itemId: inventoryItems[0]?.id || '', type: 'IN', quantity: '1', note: '' }); setInventoryModal('stock'); }} className="w-full py-2.5 rounded-xl bg-emerald-800 text-white text-xs font-bold">Stock In / Out</button><button type="button" onClick={() => { setEditingInventoryId(null); setInventoryForm({ name: '', category: 'Ingredients', unit: 'kg', quantity: '0', minStock: '5', cost: '0', supplier: '' }); setInventoryModal('item'); }} className="w-full py-2.5 rounded-xl border border-emerald-200 text-emerald-800 text-xs font-bold">Add Inventory Item</button>{inventoryItems.map((x) => <div key={x.id} className="bg-white border rounded-xl p-3 flex justify-between gap-2 text-xs"><div><div className="font-bold text-slate-900">{x.name}</div><div className="text-slate-500">{x.category} · Min {x.minStock} {x.unit}</div></div><div className="font-mono font-bold">{x.quantity} {x.unit}</div></div>)}{inventoryModal && <div className="bg-white border rounded-xl p-3 space-y-3"><div className="font-bold text-sm">{inventoryModal === 'item' ? 'Add Inventory Item' : 'Stock Movement'}</div>{inventoryModal === 'item' ? <form onSubmit={saveInventoryItem} className="space-y-2"><input required placeholder="Item name" value={inventoryForm.name} onChange={(e) => setInventoryForm((v) => ({ ...v, name: e.target.value }))} className="w-full border rounded-lg p-2 text-xs"/><input placeholder="Category" value={inventoryForm.category} onChange={(e) => setInventoryForm((v) => ({ ...v, category: e.target.value }))} className="w-full border rounded-lg p-2 text-xs"/><div className="grid grid-cols-2 gap-2"><input placeholder="Unit" value={inventoryForm.unit} onChange={(e) => setInventoryForm((v) => ({ ...v, unit: e.target.value }))} className="border rounded-lg p-2 text-xs"/><input type="number" min="0" placeholder="Quantity" value={inventoryForm.quantity} onChange={(e) => setInventoryForm((v) => ({ ...v, quantity: e.target.value }))} className="border rounded-lg p-2 text-xs"/></div><button className="w-full bg-emerald-800 text-white rounded-lg p-2 text-xs font-bold">Save</button></form> : <form onSubmit={recordStockMovement} className="space-y-2"><select required value={stockForm.itemId} onChange={(e) => setStockForm((v) => ({ ...v, itemId: e.target.value }))} className="w-full border rounded-lg p-2 text-xs"><option value="">Select item</option>{inventoryItems.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select><select value={stockForm.type} onChange={(e) => setStockForm((v) => ({ ...v, type: e.target.value as typeof v.type }))} className="w-full border rounded-lg p-2 text-xs"><option value="IN">Stock In</option><option value="OUT">Stock Out</option><option value="ADJUSTMENT">Adjustment / Waste</option></select><input type="number" min="0.01" step="0.01" value={stockForm.quantity} onChange={(e) => setStockForm((v) => ({ ...v, quantity: e.target.value }))} className="w-full border rounded-lg p-2 text-xs"/><input placeholder="Reason" value={stockForm.note} onChange={(e) => setStockForm((v) => ({ ...v, note: e.target.value }))} className="w-full border rounded-lg p-2 text-xs"/><button className="w-full bg-emerald-800 text-white rounded-lg p-2 text-xs font-bold">Save Movement</button></form>}<button type="button" onClick={() => setInventoryModal(null)} className="text-xs text-slate-500">Close</button></div>}</div>
+      )}
+
       {activeTab === 'buses' && (
         <div className="space-y-3">
           {incomingBuses.length === 0 ? (
