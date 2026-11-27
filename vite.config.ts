@@ -8,10 +8,12 @@ import { defineConfig } from 'vite';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
+// GitHub Pages uses /busbitedemo/
+// Render and local development use /
+const isGitHubPages = process.env.GITHUB_PAGES === 'true';
+
 export default defineConfig(() => ({
-  // GitHub Pages project repository URL:
-  // https://futurefusioninfotech.github.io/busbitedemo/
- base: '/busbitedemo/',
+  base: isGitHubPages ? '/busbitedemo/' : '/',
 
   plugins: [
     react(),
@@ -65,5 +67,8 @@ export default defineConfig(() => ({
     outDir: 'dist',
     emptyOutDir: true,
     assetsDir: 'assets',
+
+    // Enable source maps to debug the initialization error
+    sourcemap: true,
   },
 }));
