@@ -1,6 +1,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PlatformState } from '../types/platform';
+import { getApiUrl, WS_URL, API_URL } from '../config/api';
 
 type SocketMessage = {
   type?: string;
@@ -19,10 +20,10 @@ export function usePlatformSocket() {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(false);
 
-  // Fetch initial platform state
+  // Fetch initial platform state from Render backend
   const fetchSnapshot = useCallback(async () => {
     try {
-      const response = await fetch('/api/state', {
+      const response = await fetch(`${API_URL}/state`, {
         method: 'GET',
         headers: {
           Accept: 'application/json',
@@ -30,7 +31,9 @@ export function usePlatformSocket() {
       });
 
       if (!response.ok) {
-        throw new Error(`Unable to fetch platform state (HTTP ${response.status})`);
+        throw new Error(
+          `Unable to fetch platform state (HTTP ${response.status})`
+        );
       }
 
       const data = (await response.json()) as PlatformState;
@@ -52,16 +55,29 @@ export function usePlatformSocket() {
     }
   }, []);
 
-  // WebSocket connection
+  // WebSocket connection to Render backend
   useEffect(() => {
     mountedRef.current = true;
 
     let reconnectDelay = 2500;
 
+    const scheduleReconnect = () => {
+      if (!mountedRef.current || reconnectTimerRef.current !== null) {
+        return;
+      }
+
+      reconnectTimerRef.current = setTimeout(() => {
+        reconnectTimerRef.current = null;
+        connect();
+      }, reconnectDelay);
+
+      reconnectDelay = Math.min(reconnectDelay * 1.5, 15000);
+    };
+
     const connect = () => {
       if (!mountedRef.current) return;
 
-      // Avoid duplicate connections
+      // Prevent duplicate connections
       if (
         wsRef.current &&
         (wsRef.current.readyState === WebSocket.OPEN ||
@@ -70,17 +86,13 @@ export function usePlatformSocket() {
         return;
       }
 
-      const protocol =
-        window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
-
       let socket: WebSocket;
 
       try {
-        socket = new WebSocket(wsUrl);
+        socket = new WebSocket(`${WS_URL}/ws`);
         wsRef.current = socket;
-      } catch {
+      } catch (err) {
+        console.error('WebSocket creation failed:', err);
         scheduleReconnect();
         return;
       }
@@ -94,6 +106,8 @@ export function usePlatformSocket() {
         reconnectDelay = 2500;
         setConnected(true);
         setError(null);
+
+        console.log('BusBite WebSocket connected:', `${WS_URL}/ws`);
       };
 
       socket.onmessage = (event: MessageEvent) => {
@@ -113,6 +127,7 @@ export function usePlatformSocket() {
       };
 
       socket.onerror = () => {
+        console.error('BusBite WebSocket connection error');
         socket.close();
       };
 
@@ -127,19 +142,6 @@ export function usePlatformSocket() {
         scheduleReconnect();
       };
     };
-
-    function scheduleReconnect() {
-      if (!mountedRef.current || reconnectTimerRef.current !== null) {
-        return;
-      }
-
-      reconnectTimerRef.current = setTimeout(() => {
-        reconnectTimerRef.current = null;
-        connect();
-      }, reconnectDelay);
-
-      reconnectDelay = Math.min(reconnectDelay * 1.5, 15000);
-    }
 
     // Initial API request
     fetchSnapshot().catch(() => {
@@ -166,8 +168,10 @@ export function usePlatformSocket() {
         socket.onerror = null;
         socket.onclose = null;
 
-        if (socket.readyState === WebSocket.OPEN ||
-            socket.readyState === WebSocket.CONNECTING) {
+        if (
+          socket.readyState === WebSocket.OPEN ||
+          socket.readyState === WebSocket.CONNECTING
+        ) {
           socket.close();
         }
       }
@@ -183,7 +187,7 @@ export function usePlatformSocket() {
       method: ApiMethod,
       body?: unknown
     ): Promise<T> => {
-      const response = await fetch(url, {
+      const response = await fetch(getApiUrl(url), {
         method,
         headers: {
           Accept: 'application/json',
